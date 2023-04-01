@@ -3,6 +3,7 @@
 @author: mwahdan
 """
 
+
 # diasable the GPU
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -21,6 +22,6 @@ nlu = TransformerNLU.load(model_path, quantized=True, num_process=1)
 
 print("Prediction ...")
 utterance = "add sabrina salerno to the grime instrumentals playlist"
-print ("utterance: {}".format(utterance))
+print(f"utterance: {utterance}")
 result = nlu.predict(utterance)
-print ("result: {}".format(result))
+print(f"result: {result}")

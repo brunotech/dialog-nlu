@@ -58,19 +58,16 @@ class JointBertModel(NLUModel):
         in_valid_positions = Input(shape=(None, self.slots_num), name='valid_positions')
         bert_inputs = [in_id, in_mask, in_segment]
         inputs = bert_inputs + [in_valid_positions]
-        
-        if self.is_bert:
-            name = 'BertLayer'
-        else:
-            name = 'AlbertLayer'
+
+        name = 'BertLayer' if self.is_bert else 'AlbertLayer'
         bert_pooled_output, bert_sequence_output = hub.KerasLayer(self.bert_hub_path,
                               trainable=True, name=name)(bert_inputs)
-        
+
         intents_fc = Dense(self.intents_num, activation='softmax', name='intent_classifier')(bert_pooled_output)
-        
+
         slots_output = TimeDistributed(Dense(self.slots_num, activation='softmax'))(bert_sequence_output)
         slots_output = Multiply(name='slots_tagger')([slots_output, in_valid_positions])
-        
+
         self.model = Model(inputs=inputs, outputs=[slots_output, intents_fc])
 
         
@@ -104,11 +101,25 @@ class JointBertModel(NLUModel):
         slots = slots_vectorizer.inverse_transform(y_slots, valid_positions)
         if remove_start_end:
             slots = [x[1:-1] for x in slots]
-            
-        if not include_intent_prob:
-            intents = np.array([intent_vectorizer.inverse_transform([np.argmax(i)])[0] for i in y_intent])
-        else:
-            intents = np.array([(intent_vectorizer.inverse_transform([np.argmax(i)])[0], round(float(np.max(i)), 4)) for i in y_intent])
+
+        intents = (
+            np.array(
+                [
+                    (
+                        intent_vectorizer.inverse_transform([np.argmax(i)])[0],
+                        round(float(np.max(i)), 4),
+                    )
+                    for i in y_intent
+                ]
+            )
+            if include_intent_prob
+            else np.array(
+                [
+                    intent_vectorizer.inverse_transform([np.argmax(i)])[0]
+                    for i in y_intent
+                ]
+            )
+        )
         return slots, intents
     
 

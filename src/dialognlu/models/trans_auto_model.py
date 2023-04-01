@@ -41,18 +41,18 @@ def get_transformer_model(pretrained_model_name_or_path, cache_dir, from_pt, lay
                                   layer_pruning=layer_pruning)
     trans_type = trans_model.__class__.__name__
     model = None
-    if trans_type == 'TFBertModel':
+    if trans_type == 'TFAlbertModel':
+        model = trans_model.albert
+    elif trans_type == 'TFBertModel':
         model = trans_model.bert
     elif trans_type == 'TFDistilBertModel':
         model = trans_model.distilbert
-    elif trans_type == 'TFAlbertModel':
-        model = trans_model.albert
-    elif trans_type == 'TFXLNetModel':
-       model = trans_model.transformer
     elif trans_type == 'TFRobertaModel':
         model = trans_model.roberta
+    elif trans_type == 'TFXLNetModel':
+        model = trans_model.transformer
     else:
-        raise Exception("%s is not supported yet!" % trans_type)
+        raise Exception(f"{trans_type} is not supported yet!")
     return model, trans_type
 
 
@@ -63,9 +63,8 @@ def create_joint_trans_model(config):
     layer_pruning = config.get('layer_pruning', None)
     model, trans_type = get_transformer_model(pretrained_model_name_or_path, cache_dir, from_pt, layer_pruning)
     if trans_type not in TYPE_2_JOINT_MODEL:
-        raise Exception("%s is not supported yet!" % trans_type)
-    joint_model = TYPE_2_JOINT_MODEL[trans_type](config, model)
-    return joint_model
+        raise Exception(f"{trans_type} is not supported yet!")
+    return TYPE_2_JOINT_MODEL[trans_type](config, model)
 
 
 def load_joint_trans_model(load_folder_path, quantized=False, num_process=4):
@@ -74,9 +73,8 @@ def load_joint_trans_model(load_folder_path, quantized=False, num_process=4):
     clazz = model_params['class']
     if quantized:
         print("Loading quantized model in %d processes" % num_process)
-        model = NluModelPool(clazz, load_folder_path, num_process)
+        return NluModelPool(clazz, load_folder_path, num_process)
     else:
         if clazz not in LOAD_CLASS_NAME_2_MODEL:
             raise Exception('%s not supported')
-        model = LOAD_CLASS_NAME_2_MODEL[clazz].load(load_folder_path)
-    return model
+        return LOAD_CLASS_NAME_2_MODEL[clazz].load(load_folder_path)

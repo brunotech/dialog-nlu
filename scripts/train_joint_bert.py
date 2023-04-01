@@ -3,6 +3,7 @@
 @author: mwahdan
 """
 
+
 from dialognlu import BertNLU
 from dialognlu.readers.goo_format_reader import Reader
 
@@ -36,7 +37,7 @@ start_model_folder_path = args.model
 
 
 if type_ not in {'bert', 'albert'}:
-    raise ValueError('type must be one of these values: %s' % str(VALID_TYPES))
+    raise ValueError(f'type must be one of these values: {VALID_TYPES}')
 
 
 print('Reading data ...')

@@ -33,11 +33,11 @@ def modify_num_of_layers(config, k=None, layers_indexes=None, is_alternate=False
         raise Exception("One and only one of `k` and `layers_indexes` should have a value")
     key = config.__class__.__name__
     if key not in NUM_LAYERS_CONFIG_PARAMETER:
-        raise Exception('`%s` is not supported in layer_pruning' % key)
+        raise Exception(f'`{key}` is not supported in layer_pruning')
     value = NUM_LAYERS_CONFIG_PARAMETER[key]
     original_num_layers = getattr(config, value)
     num_layers = original_num_layers
-    
+
     # handle layers_indexes
     if layers_indexes is not None:
         # make sure indexs are valid
@@ -46,14 +46,14 @@ def modify_num_of_layers(config, k=None, layers_indexes=None, is_alternate=False
                 raise Exception("index `%d` can't be greater than or equal number of layers in the model `%d`" % (i, num_layers))
         # compute k
         k = len(set(layers_indexes))
-    
+
     # check for is_alternate
     if is_alternate and k >= int(num_layers / 2):
         raise Exception("k = `%d` in `alternate` strategy can't be greater than or equal the half of the number of layers in the model `%d`" % (k, num_layers))
     # check for k
     if k >= num_layers:
         raise Exception("k = `%d` can't be greater than or equal the number of layers in the model `%d`" % (k, num_layers))
-    
+
     # set new num_layers
 #    setattr(config, 'hidden_dim', num_layers - k)
     setattr(config, value, num_layers - k)
@@ -83,7 +83,7 @@ def rename_layers_in_strategy(model, strategy, original_num_layers, k, layers_in
             lst.append(i)
         indexes = sorted(lst)
     else:
-        raise Exception('`%s` is not a supported layer pruning strategy' % strategy)
+        raise Exception(f'`{strategy}` is not a supported layer pruning strategy')
     model = rename_layers(model, indexes)
     return model
 
@@ -91,18 +91,18 @@ def rename_layers_in_strategy(model, strategy, original_num_layers, k, layers_in
 def rename_layers(model, order=None):
     key = model.__class__.__name__
     if key not in MODEL_Transformer_PART or key not in MODEL_ENCODER_NAME_FORMAT:
-        raise Exception('`%s` is not supported in layer_pruning' % key)
+        raise Exception(f'`{key}` is not supported in layer_pruning')
     _format = MODEL_ENCODER_NAME_FORMAT[key]
     value = MODEL_Transformer_PART[key]
     obj = model
     children = value.split('.')
     for child in children:
         obj = getattr(obj, child)
-        
+
     # temp renaming
     for i in range(len(obj.layer)):
-        obj.layer[i]._name = "layer_temp_._{}".format(i)
-    
+        obj.layer[i]._name = f"layer_temp_._{i}"
+
     # handle empty order
     if order is None or len(order) == 0:
         for i in range(len(obj.layer)):
@@ -110,5 +110,5 @@ def rename_layers(model, order=None):
     else: # handle specific order
         for i in range(len(obj.layer)):
             obj.layer[i]._name = _format.format(order[i])
-        
+
     return model

@@ -26,7 +26,7 @@ class AutoNLU:
             config = json.load(json_file)
         class_name = config.get("nlu_class")
         if class_name not in NAME_TO_CLASS:
-            raise Exception("{} is not supported in AutoNLU".format(class_name))
-        print("Loading {} ...".format(class_name))
+            raise Exception(f"{class_name} is not supported in AutoNLU")
+        print(f"Loading {class_name} ...")
         clazz = NAME_TO_CLASS[class_name]
         return clazz.load(path)

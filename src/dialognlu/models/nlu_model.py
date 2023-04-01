@@ -16,10 +16,10 @@ class NLUModel:
     def visualize_metric(self, history_dic, metric_name):
         plt.plot(history_dic[metric_name])
         legend = ['train']
-        if 'val_' + metric_name in history_dic:
-            plt.plot(history_dic['val_' + metric_name])
+        if f'val_{metric_name}' in history_dic:
+            plt.plot(history_dic[f'val_{metric_name}'])
             legend.append('test')
-        plt.title('model ' + metric_name)
+        plt.title(f'model {metric_name}')
         plt.ylabel(metric_name)
         plt.xlabel('epoch')
         plt.legend(legend, loc='upper left')

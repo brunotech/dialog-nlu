@@ -3,6 +3,7 @@ Originally guided by AllenNLP and Transformers repos
 To create the package for pypi.
 """
 
+
 import shutil
 from pathlib import Path
 
@@ -12,7 +13,7 @@ from setuptools import find_packages, setup
 # Remove stale dialognlu.egg-info directory to avoid https://github.com/pypa/pip/issues/5466
 stale_egg_info = Path(__file__).parent / "dialognlu.egg-info"
 if stale_egg_info.exists():
-    print("Warning: {} exists.".format(stale_egg_info))
+    print(f"Warning: {stale_egg_info} exists.")
     shutil.rmtree(stale_egg_info)
 
 
@@ -29,13 +30,13 @@ setup(
     keywords="NLP deep learning transformers BERT ALBERT tensorflow",
     license="Apache",
     url="https://github.com/MahmoudWahdan/dialog-nlu",
-    
+
     # package_dir={"dialognlu": "dialognlu"},
     # packages=find_packages(),
-    
+
     package_dir={"": "src"},
     packages=find_packages("src"),
-    
+
     install_requires=[
         "scikit-learn>=0.23.2", "pandas>=1.1.2", "numpy>=1.18.5", 
         "scipy>=1.5.2", "matplotlib>=3.3.2", "seaborn>=0.11.0",

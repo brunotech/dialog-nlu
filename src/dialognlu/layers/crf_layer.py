@@ -85,9 +85,7 @@ class CRFLayer(Layer):
         # y_true = tf.cast(tf.argmax(y_true, axis=-1), tf.int32)
         log_likelihood, self.transition_params = crf.crf_log_likelihood(
             y_pred, y_true, self.sequence_lengths, self.transition_params)
-        loss = tf.reduce_mean(-log_likelihood)
-
-        return loss
+        return tf.reduce_mean(-log_likelihood)
 
     def get_config(self):
         config = {

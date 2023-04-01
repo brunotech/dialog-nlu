@@ -41,10 +41,7 @@ class TagsVectorizer:
         slots = [self.label_encoder.inverse_transform(y) for y in slots]
         output = []
         for i in range(len(slots)):
-            y = []
-            for j in range(seq_length):
-                if valid_positions[i][j] == 1:
-                    y.append(str(slots[i][j]))
+            y = [str(slots[i][j]) for j in range(seq_length) if valid_positions[i][j] == 1]
             output.append(y)
         return output
     

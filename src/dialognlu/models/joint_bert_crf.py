@@ -44,22 +44,19 @@ class JointBertCRFModel(JointBertModel):
         in_mask = Input(shape=(None,), name='input_mask', dtype=tf.int32)
         in_segment = Input(shape=(None,), name='input_type_ids', dtype=tf.int32)
         sequence_lengths = Input(shape=(1), dtype='int32', name='sequence_lengths')
-        
+
         bert_inputs = [in_id, in_mask, in_segment]
         inputs = bert_inputs + [sequence_lengths]
-        
-        if self.is_bert:
-            name = 'BertLayer'
-        else:
-            name = 'AlbertLayer'
+
+        name = 'BertLayer' if self.is_bert else 'AlbertLayer'
         bert_pooled_output, bert_sequence_output = hub.KerasLayer(self.bert_hub_path,
                               trainable=True, name=name)(bert_inputs)
-        
+
         intents_fc = Dense(self.intents_num, activation='softmax', name='intent_classifier')(bert_pooled_output)
-        
+
         self.crf = CRFLayer(name='slots_tagger')
         slots_output = self.crf(inputs=[bert_sequence_output, sequence_lengths])
-        
+
         self.model = Model(inputs=inputs, outputs=[slots_output, intents_fc])
 
         
@@ -87,12 +84,29 @@ class JointBertCRFModel(JointBertModel):
         slots = slots_vectorizer.inverse_transform(y_slots, valid_positions)
         if remove_start_end:
             slots = [x[1:-1] for x in slots]
-            
-        if not include_intent_prob:
-            intents = np.array([intent_vectorizer.inverse_transform([np.argmax(y_intent[i])])[0] for i in range(y_intent.shape[0])])
-        else:
-            intents = np.array([(intent_vectorizer.inverse_transform([np.argmax(y_intent[i])])[0], round(float(np.max(y_intent[i])), 4)) for i in range(y_intent.shape[0])])
 
+        intents = (
+            np.array(
+                [
+                    (
+                        intent_vectorizer.inverse_transform(
+                            [np.argmax(y_intent[i])]
+                        )[0],
+                        round(float(np.max(y_intent[i])), 4),
+                    )
+                    for i in range(y_intent.shape[0])
+                ]
+            )
+            if include_intent_prob
+            else np.array(
+                [
+                    intent_vectorizer.inverse_transform([np.argmax(y_intent[i])])[
+                        0
+                    ]
+                    for i in range(y_intent.shape[0])
+                ]
+            )
+        )
         return slots, intents
     
 

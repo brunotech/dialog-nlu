@@ -53,9 +53,16 @@ class NluModelPool:
 
     def predict_slots_intent(self, X, slots_vectorizer, intent_vectorizer, remove_start_end=True,
                              include_intent_prob=False):
-        parameters = []
-        for i in range(len(X["valid_positions"])):
-            parameters.append(({k:v[[i]] for k,v in X.items()}, slots_vectorizer, intent_vectorizer, remove_start_end, include_intent_prob,))
+        parameters = [
+            (
+                {k: v[[i]] for k, v in X.items()},
+                slots_vectorizer,
+                intent_vectorizer,
+                remove_start_end,
+                include_intent_prob,
+            )
+            for i in range(len(X["valid_positions"]))
+        ]
         output = self.pool.map(WorkerProcessor.predict_slots_intent, parameters)
         slots = []
         intents = []

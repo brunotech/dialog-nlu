@@ -64,11 +64,25 @@ class JointTransDistilBertModel(BaseJointTransformerModel):
         slots = slots_vectorizer.inverse_transform(y_slots, valid_positions)
         if remove_start_end:
             slots = [x[1:-1] for x in slots]
-            
-        if not include_intent_prob:
-            intents = np.array([intent_vectorizer.inverse_transform([np.argmax(i)])[0] for i in y_intent])
-        else:
-            intents = np.array([(intent_vectorizer.inverse_transform([np.argmax(i)])[0], round(float(np.max(i)), 4)) for i in y_intent])
+
+        intents = (
+            np.array(
+                [
+                    (
+                        intent_vectorizer.inverse_transform([np.argmax(i)])[0],
+                        round(float(np.max(i)), 4),
+                    )
+                    for i in y_intent
+                ]
+            )
+            if include_intent_prob
+            else np.array(
+                [
+                    intent_vectorizer.inverse_transform([np.argmax(i)])[0]
+                    for i in y_intent
+                ]
+            )
+        )
         return slots, intents
     
     

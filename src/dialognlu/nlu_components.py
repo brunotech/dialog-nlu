@@ -46,7 +46,7 @@ class JointNLU(NLU):
     def save(self, path):
         if not os.path.exists(path):
             os.makedirs(path)
-            print('Folder `{}` created'.format(path))
+            print(f'Folder `{path}` created')
         self.model.save(path)
         # with open(os.path.join(path, 'tags_vectorizer.pkl'), 'wb') as handle:
         #     pickle.dump(self.tags_vectorizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -59,7 +59,7 @@ class JointNLU(NLU):
     @staticmethod
     def load_pickles(path, claz):
         if not os.path.exists(path):
-            raise Exception('Folder `{}` not exist'.format(path))
+            raise Exception(f'Folder `{path}` not exist')
         new_instance = claz()
         # loading tags vectorizer
         new_instance.tags_vectorizer = TagsVectorizer.load(os.path.join(path, 'tags_vectorizer.pkl'))
@@ -102,8 +102,8 @@ class JointNLU(NLU):
         train_tags = self.tags_vectorizer.transform(train_dataset.tags, train_valid_positions)
         print('Encoding training intents ...')
         train_intents = self.intents_label_encoder.transform(train_dataset.intents).astype(np.int32)
-        
-        id2label = {i:v for i, v in enumerate(self.tags_vectorizer.label_encoder.classes_)}
+
+        id2label = dict(enumerate(self.tags_vectorizer.label_encoder.classes_))
 
         if val_dataset is not None:
             print('Vectorizing validation text ...')
@@ -129,14 +129,13 @@ class JointNLU(NLU):
                     self.intents_label_encoder, remove_start_end=True, include_intent_prob=True)
         slots = convert_to_slots(predicted_tags[0])
         slots = [{"slot": slot, "start": start, "end": end, "value": ' '.join(tokens[start:end + 1])} for slot, start, end in slots]
-        response = {
+        return {
             "intent": {
-                    "name": predicted_intents[0][0].strip(),
-                    "confidence": predicted_intents[0][1]
-                    },
-            "slots": slots
+                "name": predicted_intents[0][0].strip(),
+                "confidence": predicted_intents[0][1],
+            },
+            "slots": slots,
         }
-        return response
 
     def evaluate(self, dataset: NluDataset):
         print('Vectorizing validation text ...')
@@ -214,7 +213,7 @@ class BertNLU(JointNLU):
             bert_model_hub_path = "https://tfhub.dev/tensorflow/albert_en_base/1"
             is_bert = False
         else:
-            raise ValueError('type must be one of these values: %s' % str(self.VALID_TYPES))
+            raise ValueError(f'type must be one of these values: {str(self.VALID_TYPES)}')
         self.config["is_bert"] = is_bert
         self.config["bert_model_hub_path"] = bert_model_hub_path
         self.text_vectorizer = BERTVectorizer(is_bert, bert_model_hub_path)
@@ -258,7 +257,7 @@ class BertCrfNLU(JointNLU):
             bert_model_hub_path = "https://tfhub.dev/tensorflow/albert_en_base/1"
             is_bert = False
         else:
-            raise ValueError('type must be one of these values: %s' % str(self.VALID_TYPES))
+            raise ValueError(f'type must be one of these values: {str(self.VALID_TYPES)}')
         self.config["is_bert"] = is_bert
         self.config["bert_model_hub_path"] = bert_model_hub_path
         self.text_vectorizer = BERTVectorizer(is_bert, bert_model_hub_path)

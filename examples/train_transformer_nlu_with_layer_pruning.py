@@ -3,6 +3,7 @@
 @author: mwahdan
 """
 
+
 from dialognlu import TransformerNLU
 from dialognlu.readers.goo_format_reader import Reader
 
@@ -19,7 +20,7 @@ val_dataset = Reader.read(val_path)
 # save_path = "../saved_models/joint_trans_xlnet_model_{}_layers_pruning".format(k)
 
 pretrained_model_name_or_path = "roberta-base"
-save_path = "../saved_models/joint_trans_roberta_model_{}_layers_pruning".format(k)
+save_path = f"../saved_models/joint_trans_roberta_model_{k}_layers_pruning"
 
 # pretrained_model_name_or_path = "bert-base-uncased"
 # save_path = "../saved_models/joint_trans_bert_model_{}_layers_pruning".format(k)

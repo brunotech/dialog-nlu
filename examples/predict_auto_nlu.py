@@ -3,6 +3,7 @@
 @author: mwahdan
 """
 
+
 from dialognlu import AutoNLU
 
 
@@ -13,6 +14,6 @@ nlu = AutoNLU.load(model_path)
 
 print("Prediction ...")
 utterance = "add sabrina salerno to the grime instrumentals playlist"
-print ("utterance: {}".format(utterance))
+print(f"utterance: {utterance}")
 result = nlu.predict(utterance)
-print ("result: {}".format(result))
+print(f"result: {result}")

@@ -69,14 +69,18 @@ class BERTVectorizer:
             segment_ids.append(seg_ids)
             valid_positions.append(valid_pos)
 
-        sequence_lengths = np.array([len(i) for i in input_ids])            
+        sequence_lengths = np.array([len(i) for i in input_ids])
         input_ids = tf.keras.preprocessing.sequence.pad_sequences(input_ids, padding='post')
         input_mask = tf.keras.preprocessing.sequence.pad_sequences(input_mask, padding='post')
         segment_ids = tf.keras.preprocessing.sequence.pad_sequences(segment_ids, padding='post')
         valid_positions = tf.keras.preprocessing.sequence.pad_sequences(valid_positions, padding='post')
-        result = {"input_word_ids": input_ids, "input_mask": input_mask, "input_type_ids": segment_ids,
-                    "valid_positions": valid_positions, "sequence_lengths": sequence_lengths}
-        return result
+        return {
+            "input_word_ids": input_ids,
+            "input_mask": input_mask,
+            "input_type_ids": segment_ids,
+            "valid_positions": valid_positions,
+            "sequence_lengths": sequence_lengths,
+        }
     
     
     def __vectorize(self, text: str):

@@ -24,7 +24,7 @@ def get_mandatory_parameter(parameter_name, parameters_map, error_message=None):
     if parameter_name not in parameters_map:
         if error_message is None:
             # default error_message
-            error_message = "`%s` is mandatory, but it is misssing from parameters" % parameter_name
+            error_message = f"`{parameter_name}` is mandatory, but it is misssing from parameters"
         raise Exception(error_message)
     return parameters_map[parameter_name]
 
@@ -117,7 +117,7 @@ def from_pretrained_detailed(model_class, pretrained_model_name_or_path, *model_
     output_loading_info = kwargs.pop("output_loading_info", False)
     local_files_only = kwargs.pop("local_files_only", False)
     use_cdn = kwargs.pop("use_cdn", True)
-    
+
     # mwahdan: Read layer_pruning config if exist
     layer_pruning = kwargs.pop("layer_pruning", None)
 
@@ -149,14 +149,12 @@ def from_pretrained_detailed(model_class, pretrained_model_name_or_path, *model_
                 archive_file = os.path.join(pretrained_model_name_or_path, WEIGHTS_NAME)
             else:
                 raise EnvironmentError(
-                    "Error no file named {} found in directory {} or `from_pt` set to False".format(
-                        [WEIGHTS_NAME, TF2_WEIGHTS_NAME], pretrained_model_name_or_path
-                    )
+                    f"Error no file named {[WEIGHTS_NAME, TF2_WEIGHTS_NAME]} found in directory {pretrained_model_name_or_path} or `from_pt` set to False"
                 )
         elif os.path.isfile(pretrained_model_name_or_path) or is_remote_url(pretrained_model_name_or_path):
             archive_file = pretrained_model_name_or_path
-        elif os.path.isfile(pretrained_model_name_or_path + ".index"):
-            archive_file = pretrained_model_name_or_path + ".index"
+        elif os.path.isfile(f"{pretrained_model_name_or_path}.index"):
+            archive_file = f"{pretrained_model_name_or_path}.index"
         else:
             archive_file = hf_bucket_url(
                 pretrained_model_name_or_path,
@@ -183,12 +181,14 @@ def from_pretrained_detailed(model_class, pretrained_model_name_or_path, *model_
             )
             raise EnvironmentError(msg)
         if resolved_archive_file == archive_file:
-            logger.info("loading weights file {}".format(archive_file))
+            logger.info(f"loading weights file {archive_file}")
         else:
-            logger.info("loading weights file {} from cache at {}".format(archive_file, resolved_archive_file))
+            logger.info(
+                f"loading weights file {archive_file} from cache at {resolved_archive_file}"
+            )
     else:
         resolved_archive_file = None
-        
+
     # mwahdan: Modify config
     if layer_pruning:
         layer_pruning_k = layer_pruning_layers_indexes = layer_pruning_is_odd = None
@@ -204,13 +204,15 @@ def from_pretrained_detailed(model_class, pretrained_model_name_or_path, *model_
             layer_pruning_is_odd = get_mandatory_parameter('is_odd', layer_pruning)
             config, original_num_layers = modify_num_of_layers(config, k=layer_pruning_k, is_alternate=True)
         else:
-            raise Exception('`%s` is not a supported layer pruning strategy' % layer_pruning_strategy)
-    
+            raise Exception(
+                f'`{layer_pruning_strategy}` is not a supported layer pruning strategy'
+            )
+                
 
     # Instantiate model.
     model = model_class(config, *model_args, **model_kwargs)
-    
-    
+
+
     # mwahdan: Rename layers
     if layer_pruning:
         model = rename_layers_in_strategy(model, layer_pruning_strategy, original_num_layers,
@@ -227,7 +229,9 @@ def from_pretrained_detailed(model_class, pretrained_model_name_or_path, *model_
 
     model(model.dummy_inputs, training=False)  # build the network with dummy inputs
 
-    assert os.path.isfile(resolved_archive_file), "Error retrieving file {}".format(resolved_archive_file)
+    assert os.path.isfile(
+        resolved_archive_file
+    ), f"Error retrieving file {resolved_archive_file}"
     # 'by_name' allow us to do transfer learning by skipping/adding layers
     # see https://github.com/tensorflow/tensorflow/blob/00fad90125b18b80fe054de1055770cfb8fe4ba3/tensorflow/python/keras/engine/network.py#L1339-L1357
     try:
@@ -241,7 +245,7 @@ def from_pretrained_detailed(model_class, pretrained_model_name_or_path, *model_
         )
 
     model(model.dummy_inputs, training=False)  # Make sure restore ops are run
-    
+
     # mwahdan: Rename layers
     if layer_pruning is not None:
         model = rename_layers(model)
@@ -251,12 +255,12 @@ def from_pretrained_detailed(model_class, pretrained_model_name_or_path, *model_
         if "layer_names" not in f.attrs and "model_weights" in f:
             f = f["model_weights"]
         hdf5_layer_names = set(hdf5_format.load_attributes_from_hdf5_group(f, "layer_names"))
-    model_layer_names = set(layer.name for layer in model.layers)
+    model_layer_names = {layer.name for layer in model.layers}
     missing_keys = list(model_layer_names - hdf5_layer_names)
     unexpected_keys = list(hdf5_layer_names - model_layer_names)
     error_msgs = []
 
-    if len(unexpected_keys) > 0:
+    if unexpected_keys:
         logger.warning(
             f"Some weights of the model checkpoint at {pretrained_model_name_or_path} were not used when "
             f"initializing {model.__class__.__name__}: {unexpected_keys}\n"
@@ -267,7 +271,7 @@ def from_pretrained_detailed(model_class, pretrained_model_name_or_path, *model_
         )
     else:
         logger.warning(f"All model checkpoint weights were used when initializing {model.__class__.__name__}.\n")
-    if len(missing_keys) > 0:
+    if missing_keys:
         logger.warning(
             f"Some weights of {model.__class__.__name__} were not initialized from the model checkpoint at {pretrained_model_name_or_path} "
             f"and are newly initialized: {missing_keys}\n"
@@ -279,7 +283,7 @@ def from_pretrained_detailed(model_class, pretrained_model_name_or_path, *model_
             f"If your task is similar to the task the model of the ckeckpoint was trained on, "
             f"you can already use {model.__class__.__name__} for predictions without further training."
         )
-    if len(error_msgs) > 0:
+    if error_msgs:
         raise RuntimeError(
             "Error(s) in loading weights for {}:\n\t{}".format(model.__class__.__name__, "\n\t".join(error_msgs))
         )
@@ -382,8 +386,5 @@ def from_pretrained(pretrained_model_name_or_path, *model_args, **kwargs):
         if isinstance(config, config_class):
             return from_pretrained_detailed(model_class, pretrained_model_name_or_path, *model_args, config=config, **kwargs)
     raise ValueError(
-        "Unrecognized configuration class {} for this kind of TFAutoModel.\n"
-        "Model type should be one of {}.".format(
-            config.__class__, ", ".join(c.__name__ for c in TF_MODEL_MAPPING.keys())
-        )
+        f'Unrecognized configuration class {config.__class__} for this kind of TFAutoModel.\nModel type should be one of {", ".join(c.__name__ for c in TF_MODEL_MAPPING.keys())}.'
     )

@@ -33,7 +33,7 @@ def convert_to_tflite_model(model, save_file_path, conversion_mode="normal"):
         converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
         converter.experimental_new_converter = True
     else:
-        raise Exception("`%s` is not supported conversion_mode" % conversion_mode)
+        raise Exception(f"`{conversion_mode}` is not supported conversion_mode")
 
     tflite_model = converter.convert()
     open(save_file_path, "wb").write(tflite_model)
